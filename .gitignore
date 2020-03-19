@@ -10,6 +10,8 @@ npm-debug.*
 *.zip
 web-build/
 web-report/
+assets/
+.expo-shared/
 
 # macOS
 .DS_Store

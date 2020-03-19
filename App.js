@@ -1,17 +1,13 @@
 import React, {Component} from 'react';
-import { StyleSheet, Text, View, Button, TextInput } from 'react-native';
-//import Firebase from './firebase'
+import { StyleSheet, Text, View, Button, TextInput,FlatList } from 'react-native';
 import * as firebase from 'firebase';
-
-
 
 export default class PrimeiroProjeto extends Component{
   constructor (props){
 
     super(props)
     this.state = {
-      nomeInput:'',
-      idadeInput:''
+      lista:[]
     }
 
     const config = {
@@ -28,60 +24,44 @@ export default class PrimeiroProjeto extends Component{
   if (!firebase.apps.length)
   {
     firebase.initializeApp(config);
-    //Aqui ele monitora qualquer mudança
-    firebase.database().ref("usuarios/1/nome").on('value', (snapshot) =>{    
+    firebase.database().ref('usuarios').on('value', (snapshot)=>{
+      let state= this.state
+      state.lista=[]
 
-    //Aqui ele monitora uma vez apenas
-    //firebase.database().ref("usuarios/1/nome").once('value', (snapshot) =>{
-        let state = this.state
-        state.nome = snapshot.val()
-        this.setState(state)
-    })    
+      snapshot.forEach( (childItem)=>{
+        state.lista.push({
+          key:childItem.key,
+          nome:childItem.val().nome,
+          idade:childItem.val().idade          
+        })
+      } )
+
+
+      //precisamos converter o snapshot em array pq o data do flatlist é um.
+      this.setState(state)
+    })
   }
   else
   {
       firebase.app();
   }  
 
-  this.inserirUsuario = this.inserirUsuario.bind(this)
   
-  //Alterações de dados
-  //firebase.database().ref('contagem').set('90')
-  //firebase.database().ref('usuarios').child('2').child('idade').set(26)
-
-  //Exemplo de remoção
-  //firebase.database().ref('usuarios').child('-M2n9Nn58y8RfhXLDWKd').remove()
-
-  }
-
-
-  inserirUsuario() {
-    
-    if(this.state.nomeInput.length>0){
-
-      let usuarios = firebase.database().ref('usuarios')
-      let chave = usuarios.push().key //gera chave aleatório dentro do nó "usuários"
-      usuarios.child(chave).set({
-        nome:this.state.nomeInput,
-        idade:this.state.idadeInput
-      })
-
-      alert("usuário inserido!")
-
-    }
-
   }
 
   render(){
     return(
         <View style={styles.container}>
-          <Text>Meu nome é: 13 min</Text>
-          <TextInput  style={styles.input} onChangeText={ (nomeInput)=>this.setState({nomeInput}) }   />
-          
-          <Text>Idade do usupário</Text>                    
-          <TextInput  style={styles.input}  onChangeText={ (idadeInput)=>this.setState({idadeInput}) }   />          
-
-          <Button title="Inserir usuário" onPress={ this.inserirUsuario } />
+          <FlatList 
+                    data={ this.state.lista }
+                    renderItem={ ( {item} ) => {
+                      return (
+                        <View>
+                          <Text>{item.nome}, {item.idade} anos (Chave: {item.key}</Text>
+                        </View>
+                      )
+                    } }
+          />
 
         </View>
     )
